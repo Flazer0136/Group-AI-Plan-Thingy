@@ -1,5 +1,3 @@
-# My Django Project
-
 ## How to Set Up
 
 1. **Install uv**
