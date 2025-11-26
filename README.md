@@ -18,10 +18,9 @@
     ```bash
     uv run python manage.py migrate
     uv run python manage.py runserver
-    
 
 5. **Final Sanity Check**
-    Before you push, run this command to make sure your lockfile is perfectly up to date with your `pyproject.toml`:
+    run this command to make sure your lockfile is perfectly up to date with your `pyproject.toml`:
 
     ```bash
     uv lock
