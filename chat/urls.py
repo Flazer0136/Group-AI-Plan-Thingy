@@ -4,6 +4,6 @@ from . import views
 app_name = 'chat'
 
 
-urlPatterns = [
-    
+urlpatterns = [
+    path('', views.index, name='index'),
 ]

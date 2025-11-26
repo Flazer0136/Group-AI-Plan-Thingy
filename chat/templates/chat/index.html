@@ -1,0 +1,113 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Chat Room</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 600px;
+            margin: 50px auto;
+            padding: 20px;
+        }
+        #chat-log {
+            border: 1px solid #ccc;
+            height: 300px;
+            overflow-y: scroll;
+            padding: 10px;
+            margin-bottom: 10px;
+            background-color: #f9f9f9;
+        }
+        #chat-message-input {
+            width: 80%;
+            padding: 10px;
+        }
+        #chat-message-submit {
+            width: 18%;
+            padding: 10px;
+        }
+        .message {
+            margin: 5px 0;
+            padding: 5px;
+            background-color: #e3f2fd;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Simple Chat Room</h1>
+    
+    <div id="chat-log"></div>
+    
+    <input id="chat-message-input" type="text" placeholder="Type a message...">
+    <button id="chat-message-submit">Send</button>
+
+    <script>
+        const chatLog = document.querySelector('#chat-log');
+        const messageInput = document.querySelector('#chat-message-input');
+        const submitButton = document.querySelector('#chat-message-submit');
+
+        // Create WebSocket connection
+        const chatSocket = new WebSocket(
+            'ws://' + window.location.host + '/ws/chat/'
+        );
+
+        // Connection opened
+        chatSocket.onopen = function(e) {
+            console.log('WebSocket connection established');
+            addMessage('Connected to chat!', 'system');
+        };
+
+        // Listen for messages from server
+        chatSocket.onmessage = function(e) {
+            const data = JSON.parse(e.data);
+            addMessage(data.message, 'received');
+        };
+
+        // Connection closed
+        chatSocket.onclose = function(e) {
+            console.log('WebSocket connection closed');
+            addMessage('Disconnected from chat', 'system');
+        };
+
+        // Connection error
+        chatSocket.onerror = function(e) {
+            console.error('WebSocket error:', e);
+        };
+
+        // Send message when button clicked
+        submitButton.onclick = function(e) {
+            const message = messageInput.value;
+            if (message) {
+                chatSocket.send(JSON.stringify({
+                    'message': message
+                }));
+                addMessage(message, 'sent');
+                messageInput.value = '';
+            }
+        };
+
+        // Send message when Enter key pressed
+        messageInput.onkeyup = function(e) {
+            if (e.key === 'Enter') {
+                submitButton.click();
+            }
+        };
+
+        // Helper function to add messages to chat log
+        function addMessage(message, type) {
+            const messageElement = document.createElement('div');
+            messageElement.classList.add('message');
+            messageElement.textContent = message;
+            
+            if (type === 'system') {
+                messageElement.style.backgroundColor = '#fff3cd';
+            } else if (type === 'sent') {
+                messageElement.style.backgroundColor = '#d4edda';
+            }
+            
+            chatLog.appendChild(messageElement);
+            chatLog.scrollTop = chatLog.scrollHeight;
+        }
+    </script>
+</body>
+</html>
