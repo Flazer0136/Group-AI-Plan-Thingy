@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/5.2/ref/settings/
 
 from pathlib import Path
 import environ
+from get_ip import get_local_ip
 
 env = environ.Env(
     DEBUG=(bool, False)
@@ -31,7 +32,10 @@ SECRET_KEY = env('SECRET_KEY')
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = env('DEBUG')
 
-ALLOWED_HOSTS = []
+LOCAL_IP = get_local_ip()
+
+ALLOWED_HOSTS = ['127.0.0.1', 'localhost', LOCAL_IP, '*']
+
 
 
 # Application definition
