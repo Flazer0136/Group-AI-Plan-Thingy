@@ -1,0 +1,18 @@
+# --- Python & Django Defaults ---
+__pycache__/
+*.py[cod]
+*.so
+db.sqlite3
+local_settings.py
+
+# --- uv & Virtual Environment ---
+.venv/
+# Note: Keep uv.lock! Do NOT ignore it.
+
+# --- Environment Variables (SECRETS) ---
+.env
+.env.*
+
+# --- OS Junk ---
+.DS_Store
+Thumbs.db
