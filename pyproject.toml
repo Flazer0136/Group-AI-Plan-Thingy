@@ -15,4 +15,5 @@ dependencies = [
     "matplotlib>=3.10.7",
     "pandas>=2.3.3",
     "psycopg[binary]>=3.2.13",
+    "uvicorn>=0.38.0",
 ]

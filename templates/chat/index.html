@@ -1,0 +1,38 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Real Time Chat</title>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+</head>
+
+<body>
+    <div class="container">
+        <h1>Real Time<br>Chat</h1>
+        <p class="subtitle">Temporary room // Expires on exit</p>
+
+        <form action="{% url 'chat:create_room' %}" method="get">
+            <button type="submit" class="btn btn-create">Create New Room</button>
+        </form>
+
+        <form id="join-form" class="join-form">
+            <input type="text" id="room-code" placeholder="Enter Code..." required>
+            <button type="submit" class="btn btn-join">Join</button>
+        </form>
+
+    </div>
+
+    <script>
+        document.querySelector('#join-form').onsubmit = function (e) {
+            e.preventDefault();
+            const roomCode = document.querySelector('#room-code').value.toUpperCase();
+            if(roomCode) {
+                window.location.pathname = '/chat/' + roomCode + '/';
+            }
+        };
+    </script>
+</body>
+
+</html>

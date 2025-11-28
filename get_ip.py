@@ -14,4 +14,4 @@ def get_local_ip():
 if __name__ == '__main__':
     ip = get_local_ip()
     print(f"\n🌐 Your local IP address: {ip}")
-    print(f"📱 Share this URL with your phone/friends: http://{ip}:8000/chat/\n")
+    print(f"📱 Share this URL with your phone/friends: http://{ip}:8000/chat\n")
