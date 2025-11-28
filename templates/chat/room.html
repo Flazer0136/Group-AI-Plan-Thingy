@@ -1,91 +1,25 @@
+{% load static %}
+
 <!DOCTYPE html>
 <html>
 <head>
     <title>Room: {{ room_name }}</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            max-width: 800px;
-            margin: 20px auto;
-            padding: 20px;
-        }
-        .room-header {
-            background-color: #000;
-            color: white;
-            padding: 15px 20px;
-            border-radius: 10px 10px 0 0;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        .room-code {
-            font-size: 20px;
-            font-weight: bold;
-        }
-        .copy-btn {
-            background-color: #444;
-            color: white;
-            border: none;
-            padding: 8px 15px;
-            border-radius: 5px;
-            cursor: pointer;
-        }
-        #chat-log {
-            border: 1px solid #ccc;
-            border-top: none;
-            height: 400px;
-            overflow-y: scroll;
-            padding: 15px;
-            background-color: #f9f9f9;
-        }
-        .message-input-area {
-            display: flex;
-            gap: 10px;
-            margin-top: 10px;
-        }
-        #chat-message-input {
-            flex: 1;
-            padding: 12px;
-            font-size: 16px;
-            border: 1px solid #ccc;
-            border-radius: 5px;
-        }
-        #chat-message-submit {
-            padding: 12px 30px;
-            background-color: #000;
-            color: white;
-            border: none;
-            border-radius: 5px;
-            cursor: pointer;
-            font-size: 16px;
-        }
-        .message {
-            margin: 8px 0;
-            padding: 10px;
-            background-color: #e3f2fd;
-            border-radius: 8px;
-        }
-        .system {
-            background-color: #fff3cd;
-            font-style: italic;
-            text-align: center;
-        }
-    </style>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
 </head>
 <body>
     <div class="room-header">
         <div>
-            <div>Room Code:</div>
+            <div class="room-code-label">Room Code:</div>
             <div class="room-code">{{ room_name }}</div>
         </div>
-        <button class="copy-btn" onclick="copyRoomCode()">Copy Code</button>
+        <button class="copy-btn" onclick="copyRoomCode()">COPY CODE</button>
     </div>
     
     <div id="chat-log"></div>
     
     <div class="message-input-area">
         <input id="chat-message-input" type="text" placeholder="Type a message...">
-        <button id="chat-message-submit">Send</button>
+        <button id="chat-message-submit">SEND</button>
     </div>
 
     <script>
@@ -96,7 +30,8 @@
 
         function copyRoomCode() {
             navigator.clipboard.writeText(roomName);
-            alert('Room code copied: ' + roomName);
+            // Changed alert to simpler text
+            alert('COPIED: ' + roomName);
         }
 
         const chatSocket = new WebSocket(

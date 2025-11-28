@@ -15,7 +15,7 @@
 4. **Run the Server**
     ```bash
     uv run python manage.py migrate
-    uv run python manage.py runserver
+    uv run uvicorn config.asgi:application --host 127.0.0.1 --port 8000 --reload
 
 5. **Final Sanity Check**
     run this command to make sure your lockfile is perfectly up to date with your `pyproject.toml`:
