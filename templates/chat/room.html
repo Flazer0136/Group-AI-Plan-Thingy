@@ -1,11 +1,13 @@
 {% load static %}
 <!DOCTYPE html>
 <html>
+
 <head>
     <title>Room: {{ room_name }}</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
 </head>
+
 <body>
 
     <!-- 1. The Sidebar -->
@@ -13,10 +15,10 @@
 
     <!-- 2. The Scrolling Wrapper -->
     <div class="app-content">
-        
+
         <!-- 3. Your Original Layout (Centered 800px) -->
         <div class="center-stage">
-            
+
             <div class="room-header">
                 <div>
                     <div class="room-code-label">Room Code:</div>
@@ -24,14 +26,21 @@
                 </div>
                 <button class="copy-btn" onclick="copyRoomCode()">COPY CODE</button>
             </div>
-            
-            <div id="chat-log"></div>
-            
+
+            <div id="chat-log">
+                {% for m in messages %}
+                <div class="message">
+                    {{ m.author.username }}: {{ m.content }}
+                </div>
+                {% endfor %}
+            </div>
+
             <div class="message-input-area">
                 <input id="chat-message-input" type="text" placeholder="Type a message...">
                 <button id="chat-message-submit">SEND</button>
+                <button id="ai-generate-btn">ASK AI</button>
             </div>
-            
+
         </div>
     </div>
 
@@ -51,16 +60,16 @@
             'ws://' + window.location.host + '/ws/chat/' + roomName + '/'
         );
 
-        chatSocket.onmessage = function(e) {
+        chatSocket.onmessage = function (e) {
             const data = JSON.parse(e.data);
             addMessage(data.message, data.username || 'System', data.system || false);
         };
 
-        chatSocket.onclose = function(e) {
+        chatSocket.onclose = function (e) {
             console.log('Disconnected from room');
         };
 
-        submitButton.onclick = function(e) {
+        submitButton.onclick = function (e) {
             const message = messageInput.value.trim();
 
             if (message) {
@@ -72,14 +81,22 @@
             }
         };
 
-        messageInput.onkeyup = function(e) {
+        messageInput.onkeyup = function (e) {
             if (e.key === 'Enter') submitButton.click();
         };
+
+        document.querySelector('#ai-generate-btn').onclick = function (e) {
+            chatSocket.send(JSON.stringify({
+                'type': 'ai_request',
+                'username': username
+            }));
+        };
+
 
         function addMessage(message, sender, isSystem) {
             const messageElement = document.createElement('div');
             messageElement.classList.add('message');
-            
+
             if (isSystem) {
                 messageElement.classList.add('system');
                 messageElement.textContent = message;
@@ -91,4 +108,5 @@
         }
     </script>
 </body>
+
 </html>
