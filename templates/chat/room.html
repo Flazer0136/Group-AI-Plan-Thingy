@@ -6,6 +6,7 @@
     <title>Room: {{ room_name }}</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
 </head>
 
 <body>
@@ -101,8 +102,14 @@
                 messageElement.classList.add('system');
                 messageElement.textContent = message;
             } else {
-                messageElement.textContent = sender + ': ' + message;
+                // AI message and render markdown
+                if (sender === 'AI') {
+                    messageElement.innerHTML = '<strong>' + sender + ':</strong> ' + marked.parse(message);
+                } else {
+                    messageElement.textContent = sender + ': ' + message;
+                }
             }
+
             chatLog.appendChild(messageElement);
             chatLog.scrollTop = chatLog.scrollHeight;
         }
