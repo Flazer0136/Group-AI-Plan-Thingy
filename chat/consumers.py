@@ -45,6 +45,25 @@ class ChatConsumer(AsyncWebsocketConsumer):
             author=user,
             content=content,
         )
+    
+    @sync_to_async
+    def save_ai_message(self, room, content):
+        from django.contrib.auth.models import User
+        from .models import Message
+        # Only create AI user if it doesn't exist
+        ai_user, created = User.objects.get_or_create(
+            username='AI',
+            defaults={
+                'first_name': 'AI',
+                'last_name': 'Assistant',
+                'is_active': False,  # Mark as not a real user
+            }
+        )
+        return Message.objects.create(
+            room=room,
+            author=ai_user,
+            content=content,
+        )
 
     async def receive(self, text_data):
         data = json.loads(text_data)
@@ -88,6 +107,8 @@ class ChatConsumer(AsyncWebsocketConsumer):
         
         # Generate AI response
         ai_response = await self.generate_ai_response(messages)
+
+        await self.save_ai_message(self.room_name, ai_response)
         
         # Broadcast AI response
         await self.channel_layer.group_send(
