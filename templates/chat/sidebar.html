@@ -3,7 +3,7 @@
         Le Chat
     </div>
     <div class="room-list">
-        <a href="/" href="/chat" class="room-item {% if not room_name %}active{% endif %}">
+        <a href="{% url 'chat:index' %}" class="room-item {% if not room_name %}active{% endif %}">
             + Join New
         </a>
         
@@ -11,15 +11,23 @@
             RECENT ROOMS
         </div>
 
-        <!-- Ideally, you pass a 'rooms' list from your Django view -->
-        <a href="/chat/general/" class="room-item {% if room_name == 'general' %}active{% endif %}">
-            # General
-        </a>
-        <a href="/chat/random/" class="room-item {% if room_name == 'random' %}active{% endif %}">
-            # Random
-        </a>
-        <a href="/chat/project-alpha/" class="room-item {% if room_name == 'project-alpha' %}active{% endif %}">
-            # Project Alpha
-        </a>
+        {% if recent_rooms %}
+            {% for visit in recent_rooms %}
+            <a href="/chat/{{ visit.room }}/" class="room-item {% if room_name == visit.room %}active{% endif %}">
+                # {{ visit.room }}
+            </a>
+            {% endfor %}
+        {% else %}
+            <!-- Show placeholder if no recent rooms -->
+            <a href="/chat/general/" class="room-item">
+                # General
+            </a>
+            <a href="/chat/random/" class="room-item">
+                # Random
+            </a>
+            <a href="/chat/project-alpha/" class="room-item">
+                # Project Alpha
+            </a>
+        {% endif %}
     </div>
 </div>

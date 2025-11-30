@@ -2,11 +2,15 @@ from django.shortcuts import render, redirect
 import random
 import string
 from django.contrib.auth.decorators import login_required
-from .models import Message
+from .models import Message, RoomVisit 
 
 @login_required
 def index(request):
-    return render(request, 'chat/index.html')
+    recent_rooms = RoomVisit.objects.filter(user=request.user)[:5]
+    return render(request, 'chat/index.html', {
+        'recent_rooms': recent_rooms
+    })
+
 
 def create_room(request):
     # Generate random 6-character room code

@@ -32,3 +32,17 @@ class AITokenUsage(models.Model):
 
     def __str__(self):
         return f"{self.room} - {self.total_tokens} tokens (${self.cost_usd})"
+    
+
+
+class RoomVisit(models.Model):
+    user = models.ForeignKey('auth.User', on_delete=models.CASCADE, related_name='room_visits')
+    room = models.CharField(max_length=50)
+    last_visited = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-last_visited']
+        unique_together = ['user', 'room']  # One entry per user per room
+
+    def __str__(self):
+        return f"{self.user.username} - {self.room}"
