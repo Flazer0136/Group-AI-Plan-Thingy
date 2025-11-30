@@ -2,7 +2,7 @@ from django.shortcuts import render, redirect
 import random
 import string
 from django.contrib.auth.decorators import login_required
-from .models import Message, RoomVisit 
+from .models import Message, RoomVisit, AITokenUsage
 
 @login_required
 def index(request):
@@ -28,3 +28,13 @@ def room(request, room_name):
         'messages': messages,
         'recent_rooms': recent_rooms,
     })
+
+
+@login_required
+def delete_room(request, room_name):
+    # Delete all data for this room
+    Message.objects.filter(room=room_name).delete()
+    RoomVisit.objects.filter(room=room_name).delete()
+    AITokenUsage.objects.filter(room=room_name).delete()
+    
+    return redirect('chat:index')

@@ -55,7 +55,6 @@ class ChatConsumer(AsyncWebsocketConsumer):
                 'system': True,
             }
         )
-        await self.channel_layer.group_discard(self.room_group_name, self.channel_name)
 
     @sync_to_async
     def save_message(self, room, username, content):
@@ -256,8 +255,12 @@ class ChatConsumer(AsyncWebsocketConsumer):
         return float(result['total'] or 0)
 
     async def chat_message(self, event):
-        await self.send(text_data=json.dumps({
-            'message': event['message'],
-            'username': event.get('username', 'System'),
-            'system': event.get('system', False),
-        }))
+        try:
+            await self.send(text_data=json.dumps({
+                'message': event['message'],
+                'username': event.get('username', 'System'),
+                'system': event.get('system', False),
+            }))
+        except Exception as e:
+            # Connection already closed, ignore the error
+            pass

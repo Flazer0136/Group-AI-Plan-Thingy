@@ -68,6 +68,9 @@
 
         chatSocket.onclose = function (e) {
             console.log('Disconnected from room');
+            setTimeout(function () {
+                window.location.href = '/chat/';
+            }, 1000);
         };
 
         submitButton.onclick = function (e) {
@@ -104,7 +107,7 @@
             } else {
                 // AI message and render markdown
                 if (sender === 'AI') {
-                    messageElement.innerHTML = `${sender}:  ${marked.parseInline(message)}`;
+                    messageElement.innerHTML = `${sender}: ${marked.parseInline(message)}`;
                 } else {
                     messageElement.textContent = sender + ': ' + message;
                 }
