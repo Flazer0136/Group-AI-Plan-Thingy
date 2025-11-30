@@ -1,3 +1,16 @@
+<style>
+.room-item-wrapper {
+    position: relative;
+}
+.delete-room-btn {
+    opacity: 0;
+    transition: opacity 0.2s;
+}
+.room-item-wrapper:hover .delete-room-btn {
+    opacity: 1;
+}
+</style>
+
 <div class="sidebar">
     <div class="sidebar-header">
         Le Chat
@@ -13,20 +26,17 @@
 
         {% if recent_rooms %}
             {% for visit in recent_rooms %}
-            <div class="room-item {% if room_name == visit.room %}active{% endif %}" style="display: flex; justify-content: space-between; align-items: center; padding: 0;">
-                <a href="/chat/{{ visit.room }}/" style="flex: 1; padding: 15px 20px; text-decoration: none; color: inherit;">
-                    # {{ visit.room }}
+            <div class="room-item-wrapper">
+                <a href="/chat/{{ visit.room }}/" class="room-item {% if room_name == visit.room %}active{% endif %}" style="display: flex; justify-content: space-between; align-items: center;">
+                    <span># {{ visit.room }}</span>
+                    <form method="POST" action="{% url 'chat:delete_room' room_name=visit.room %}" style="display: inline; margin: 0;" onsubmit="event.stopPropagation();">
+                        {% csrf_token %}
+                        <button type="submit" class="delete-room-btn" onclick="return confirm('Delete {{ visit.room }}?')" style="background: none; border: none; color: #888; cursor: pointer; font-size: 16px; padding: 0 5px;">✕</button>
+                    </form>
                 </a>
-                <form method="POST" action="{% url 'chat:delete_room' room_name=visit.room %}" style="margin: 0;">
-                    {% csrf_token %}
-                    <button type="submit" onclick="return confirm('Delete room {{ visit.room }}?')" style="background: none; border: none; color: #888; cursor: pointer; padding: 15px 20px; font-size: 18px;">
-                        ✕
-                    </button>
-                </form>
             </div>
             {% endfor %}
         {% else %}
-            <!-- Show placeholder if no recent rooms -->
             <a href="/chat/general/" class="room-item">
                 # General
             </a>
