@@ -24,6 +24,7 @@
 
     <script>
         const roomName = "{{ room_name }}";
+        const username = "{{ username|escapejs }}";
         const chatLog = document.querySelector('#chat-log');
         const messageInput = document.querySelector('#chat-message-input');
         const submitButton = document.querySelector('#chat-message-submit');
@@ -44,7 +45,7 @@
 
         chatSocket.onmessage = function(e) {
             const data = JSON.parse(e.data);
-            addMessage(data.message, data.system || false);
+            addMessage(data.message, data.username || 'System', data.system || false);
         };
 
         chatSocket.onclose = function(e) {
@@ -53,9 +54,11 @@
 
         submitButton.onclick = function(e) {
             const message = messageInput.value.trim();
+
             if (message) {
                 chatSocket.send(JSON.stringify({
-                    'message': message
+                    'message': message,
+                    'username': username
                 }));
                 messageInput.value = '';
             }
@@ -67,14 +70,15 @@
             }
         };
 
-        function addMessage(message, isSystem) {
+        function addMessage(message, sender, isSystem) {
             const messageElement = document.createElement('div');
             messageElement.classList.add('message');
             if (isSystem) {
                 messageElement.classList.add('system');
+                messageElement.textContent = message;
+            } else {
+                messageElement.textContent = sender + ': ' + message;
             }
-            messageElement.textContent = message;
-            
             chatLog.appendChild(messageElement);
             chatLog.scrollTop = chatLog.scrollHeight;
         }

@@ -1,0 +1,14 @@
+{% load socialaccount %}
+
+<ul>
+  {% get_providers as social_providers %}
+  {% for provider in social_providers %}
+    <li>
+      <a href="{% provider_login_url provider.id %}">
+        Sign in with {{ provider.name }}
+      </a>
+    </li>
+  {% empty %}
+    <li>No social providers configured.</li>
+  {% endfor %}
+</ul>
