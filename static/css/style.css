@@ -183,6 +183,16 @@ input:focus { background-color: #f4f4f4; }
 }
 .message:nth-child(even) { background-color: #f4f4f4; }
 
+.message.system {
+    background-color: #000000 !important; /* Forces Black */
+    color: #ffffff !important;            /* Forces White */
+    font-style: normal;
+    font-weight: bold;
+    text-transform: uppercase;
+    text-align: center;
+    border: 4px solid #000000;
+}
+
 .message-username { 
     font-weight: 900; font-size: 0.8em; text-transform: uppercase; 
     display: block; margin-bottom: 5px; 

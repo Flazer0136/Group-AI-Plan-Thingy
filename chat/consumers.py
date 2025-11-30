@@ -31,13 +31,14 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
         user = self.scope.get('user')
         if user and user.is_authenticated:
+            display_name = user.username
             await self.track_room_visit(user.username)
 
         await self.channel_layer.group_send(
             self.room_group_name,
             {
                 'type': 'chat_message',
-                'message': '👋 Someone joined the chat!',
+                'message': f'👋 {display_name} joined the chat!',
                 'username': 'System',
                 'system': True,
             }
@@ -45,12 +46,18 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
     async def disconnect(self, close_code):
         await self.channel_layer.group_discard(self.room_group_name, self.channel_name)
+        # Get user again to display name
+        user = self.scope.get('user')
+        if user and user.is_authenticated:
+            display_name = user.username
+        else:
+            display_name = "Anonymous"
 
         await self.channel_layer.group_send(
             self.room_group_name,
             {
                 'type': 'chat_message',
-                'message': '👋 Someone left the chat',
+                'message': f'👋 {display_name} left the chat',
                 'username': 'System',
                 'system': True,
             }
