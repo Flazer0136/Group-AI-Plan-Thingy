@@ -104,7 +104,7 @@
             } else {
                 // AI message and render markdown
                 if (sender === 'AI') {
-                    messageElement.innerHTML = '<strong>' + sender + ':</strong> ' + marked.parse(message);
+                    messageElement.innerHTML = `${sender}:  ${marked.parseInline(message)}`;
                 } else {
                     messageElement.textContent = sender + ': ' + message;
                 }
