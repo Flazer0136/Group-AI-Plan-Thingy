@@ -45,7 +45,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
 
     async def disconnect(self, close_code):
         await self.channel_layer.group_discard(self.room_group_name, self.channel_name)
-        
+
         await self.channel_layer.group_send(
             self.room_group_name,
             {
@@ -160,15 +160,8 @@ class ChatConsumer(AsyncWebsocketConsumer):
             cost_usd=cost_usd
         )
     
-    @sync_to_async
-    def get_total_cost(self):
-        from .models import AITokenUsage
-        from django.db.models import Sum
-        result = AITokenUsage.objects.aggregate(total=Sum('cost_usd'))
-        return float(result['total'] or 0)
-    
     async def generate_ai_response(self, messages):
-        # Import here to avoid Python 3.14 compatibility issues
+    # Import here to avoid Python 3.14 compatibility issues
         from google.genai import types
         from google import genai
         
@@ -179,17 +172,41 @@ class ChatConsumer(AsyncWebsocketConsumer):
             
             client = genai.Client(api_key=api_key)
             
-            # Format chat history for Gemini
-            conversation = "\n".join([
-                f"{msg['author__username']}: {msg['content']}" 
-                for msg in messages
-            ])
+            # Build conversation with proper roles
+            gemini_messages = []
             
-            prompt = f"You are a helpful AI assistant in a chat room. Here's the conversation:\n\n{conversation}\n\nPlease provide a helpful response."
+            # Add system instruction first (optional but helpful)
+            gemini_messages.append(
+                types.Content(
+                    role="user",
+                    parts=[types.Part(text="You are a helpful AI assistant in a chat room. Keep responses concise and friendly.")]
+                )
+            )
+            gemini_messages.append(
+                types.Content(
+                    role="model",
+                    parts=[types.Part(text="Understood! I'll be a helpful and concise assistant.")]
+                )
+            )
             
-            gemini_messages = [
-                types.Content(role="user", parts=[types.Part(text=prompt)])
-            ]
+            # Add conversation history with proper roles
+            for msg in messages:
+                if msg['author__username'] == 'AI':
+                    # AI's previous responses - use "model" role
+                    gemini_messages.append(
+                        types.Content(
+                            role="model",
+                            parts=[types.Part(text=msg['content'])]
+                        )
+                    )
+                else:
+                    # User messages - use "user" role
+                    gemini_messages.append(
+                        types.Content(
+                            role="user",
+                            parts=[types.Part(text=f"{msg['author__username']}: {msg['content']}")]
+                        )
+                    )
             
             response = client.models.generate_content(
                 model="gemini-2.0-flash-lite",
@@ -219,6 +236,24 @@ class ChatConsumer(AsyncWebsocketConsumer):
             return response.text
         except Exception as e:
             return f"Sorry, I encountered an error: {str(e)}"
+
+    @sync_to_async
+    def save_token_usage(self, prompt_tokens, response_tokens, total_tokens, cost_usd):
+        from .models import AITokenUsage
+        return AITokenUsage.objects.create(
+            room=self.room_name,
+            prompt_tokens=prompt_tokens,
+            response_tokens=response_tokens,
+            total_tokens=total_tokens,
+            cost_usd=cost_usd
+        )
+
+    @sync_to_async
+    def get_total_cost(self):
+        from .models import AITokenUsage
+        from django.db.models import Sum
+        result = AITokenUsage.objects.aggregate(total=Sum('cost_usd'))
+        return float(result['total'] or 0)
 
     async def chat_message(self, event):
         await self.send(text_data=json.dumps({
