@@ -1,27 +1,36 @@
 {% load static %}
-
 <!DOCTYPE html>
 <html>
-
 <head>
     <title>Real Time Chat</title>
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
 </head>
-
 <body>
-    <div class="container">
-        <h1>Real Time<br>Chat</h1>
-        <p class="subtitle">Temporary room // Expires on exit</p>
 
-        <form action="{% url 'chat:create_room' %}" method="get">
-            <button type="submit" class="btn btn-create">Create New Room</button>
-        </form>
+    <!-- 1. The Sidebar -->
+    {% include 'chat/sidebar.html' %}
 
-        <form id="join-form" class="join-form">
-            <input type="text" id="room-code" placeholder="Enter Code..." required>
-            <button type="submit" class="btn btn-join">Join</button>
-        </form>
+    <!-- 2. The Scrolling Wrapper -->
+    <div class="app-content">
+        
+        <!-- 3. Your Original Layout (Centered 800px) -->
+        <div class="center-stage">
+            <div class="container">
+                <h1>Real Time<br>Chat</h1>
+                <p class="subtitle">Temporary room // Expires on exit</p>
 
+                <form action="{% url 'chat:create_room' %}" method="get">
+                    <button type="submit" class="btn btn-create">Create New Room</button>
+                </form>
+
+                <form id="join-form" class="join-form">
+                    <input type="text" id="room-code" placeholder="Enter Code..." required>
+                    <button type="submit" class="btn btn-join">Join</button>
+                </form>
+            </div>
+        </div>
+        
     </div>
 
     <script>
@@ -34,5 +43,4 @@
         };
     </script>
 </body>
-
 </html>
