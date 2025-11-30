@@ -1,0 +1,25 @@
+<div class="sidebar">
+    <div class="sidebar-header">
+        Le Chat
+    </div>
+    <div class="room-list">
+        <a href="/" href="/chat" class="room-item {% if not room_name %}active{% endif %}">
+            + Join New
+        </a>
+        
+        <div style="padding: 10px 20px; font-size: 12px; font-weight: bold; color: #888;">
+            RECENT ROOMS
+        </div>
+
+        <!-- Ideally, you pass a 'rooms' list from your Django view -->
+        <a href="/chat/general/" class="room-item {% if room_name == 'general' %}active{% endif %}">
+            # General
+        </a>
+        <a href="/chat/random/" class="room-item {% if room_name == 'random' %}active{% endif %}">
+            # Random
+        </a>
+        <a href="/chat/project-alpha/" class="room-item {% if room_name == 'project-alpha' %}active{% endif %}">
+            # Project Alpha
+        </a>
+    </div>
+</div>

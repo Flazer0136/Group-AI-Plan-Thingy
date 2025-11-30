@@ -1,25 +1,38 @@
 {% load static %}
-
 <!DOCTYPE html>
 <html>
 <head>
     <title>Room: {{ room_name }}</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <link rel="stylesheet" href="{% static 'css/style.css' %}">
 </head>
 <body>
-    <div class="room-header">
-        <div>
-            <div class="room-code-label">Room Code:</div>
-            <div class="room-code">{{ room_name }}</div>
+
+    <!-- 1. The Sidebar -->
+    {% include 'chat/sidebar.html' %}
+
+    <!-- 2. The Scrolling Wrapper -->
+    <div class="app-content">
+        
+        <!-- 3. Your Original Layout (Centered 800px) -->
+        <div class="center-stage">
+            
+            <div class="room-header">
+                <div>
+                    <div class="room-code-label">Room Code:</div>
+                    <div class="room-code">{{ room_name }}</div>
+                </div>
+                <button class="copy-btn" onclick="copyRoomCode()">COPY CODE</button>
+            </div>
+            
+            <div id="chat-log"></div>
+            
+            <div class="message-input-area">
+                <input id="chat-message-input" type="text" placeholder="Type a message...">
+                <button id="chat-message-submit">SEND</button>
+            </div>
+            
         </div>
-        <button class="copy-btn" onclick="copyRoomCode()">COPY CODE</button>
-    </div>
-    
-    <div id="chat-log"></div>
-    
-    <div class="message-input-area">
-        <input id="chat-message-input" type="text" placeholder="Type a message...">
-        <button id="chat-message-submit">SEND</button>
     </div>
 
     <script>
@@ -30,7 +43,6 @@
 
         function copyRoomCode() {
             navigator.clipboard.writeText(roomName);
-            // Changed alert to simpler text
             alert('COPIED: ' + roomName);
         }
 
@@ -38,17 +50,9 @@
             'ws://' + window.location.host + '/ws/chat/' + roomName + '/'
         );
 
-        chatSocket.onopen = function(e) {
-            console.log('Connected to room: ' + roomName);
-        };
-
         chatSocket.onmessage = function(e) {
             const data = JSON.parse(e.data);
-            addMessage(data.message, data.system || false);
-        };
-
-        chatSocket.onclose = function(e) {
-            console.log('Disconnected from room');
+            addMessage(data.message, data.system || false, data.username);
         };
 
         submitButton.onclick = function(e) {
@@ -62,18 +66,37 @@
         };
 
         messageInput.onkeyup = function(e) {
-            if (e.key === 'Enter') {
-                submitButton.click();
-            }
+            if (e.key === 'Enter') submitButton.click();
         };
 
-        function addMessage(message, isSystem) {
+        function getUsernameColor(str) {
+            if (!str) return '#000000';
+            let hash = 0;
+            for (let i = 0; i < str.length; i++) {
+                hash = str.charCodeAt(i) + ((hash << 5) - hash);
+            }
+            const c = (hash & 0x00FFFFFF).toString(16).toUpperCase();
+            return '#' + '00000'.substring(0, 6 - c.length) + c;
+        }
+
+        function addMessage(message, isSystem, username) {
             const messageElement = document.createElement('div');
             messageElement.classList.add('message');
+            
             if (isSystem) {
                 messageElement.classList.add('system');
+                messageElement.textContent = message;
+            } else {
+                const userColor = getUsernameColor(username);
+                messageElement.style.borderColor = userColor;
+                
+                const nameSpan = document.createElement('span');
+                nameSpan.classList.add('message-username');
+                nameSpan.style.color = userColor;
+                nameSpan.textContent = username || "Someone";
+                messageElement.appendChild(nameSpan);
+                messageElement.appendChild(document.createTextNode(message));
             }
-            messageElement.textContent = message;
             
             chatLog.appendChild(messageElement);
             chatLog.scrollTop = chatLog.scrollHeight;
