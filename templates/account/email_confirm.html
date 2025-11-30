@@ -1,0 +1,44 @@
+{% load static %}
+{% load account %}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Confirm Email</title>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body>
+
+    <div class="app-content">
+        <div class="center-stage">
+            <div class="landing-container">
+                <h1>Confirm<br>Email</h1>
+                <p class="subtitle">Verify your identity</p>
+
+                {% if confirmation %}
+                    <p style="font-family: monospace; margin-bottom: 20px;">
+                        Please confirm that <strong style="background: #000; color: #fff; padding: 0 5px;">{{ confirmation.email_address.email }}</strong> is your email address.
+                    </p>
+
+                    <form method="post" action="{% url 'account_confirm_email' confirmation.key %}">
+                        {% csrf_token %}
+                        <button type="submit" class="btn btn-create">Confirm</button>
+                    </form>
+                {% else %}
+                    <p style="font-family: monospace; margin-bottom: 20px; color: red;">
+                        This confirmation link has expired or is invalid.
+                    </p>
+                {% endif %}
+
+                <div style="margin-top: 20px; text-align: center;">
+                    <a href="{% url 'account_login' %}" style="color: #000; font-family: monospace; font-weight: bold; text-transform: uppercase;">
+                        [ Back to Login ]
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>

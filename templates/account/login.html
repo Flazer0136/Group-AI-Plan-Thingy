@@ -1,0 +1,54 @@
+{% load static %}
+{% load socialaccount %}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Sign In</title>
+    <!-- Use the same CSS file -->
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body>
+
+    <!-- The Content Wrapper -->
+    <div class="app-content">
+        
+        <!-- Centered Layout -->
+        <div class="center-stage">
+            <div class="landing-container">
+                <h1>Welcome<br>Back</h1>
+                <p class="subtitle">Authenticate with Supabase</p>
+
+                <!-- Social Providers Loop -->
+                {% get_providers as social_providers %}
+                
+                {% if social_providers %}
+                    <div class="social-login-list">
+                        {% for provider in social_providers %}
+                            <!-- Added 'process=login' to ensure it triggers login flow -->
+                            <a href="{% provider_login_url provider.id process='login' %}" class="btn btn-social">
+                                Sign in with {{ provider.name }}
+                            </a>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div style="padding: 20px; border: 4px solid #000; text-align: center; font-family: monospace;">
+                        CONFIG_ERROR: No social providers found.
+                    </div>
+                {% endif %}
+                
+                <!-- Back Link -->
+                <div style="margin-top: 20px; text-align: center;">
+                    <a href="/chat/" style="color: #000; font-family: monospace; font-weight: bold; text-transform: uppercase;">
+                        [ Return to Chat ]
+                    </a>
+                </div>
+
+            </div>
+        </div>
+        
+    </div>
+
+</body>
+</html>
