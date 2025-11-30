@@ -1,0 +1,41 @@
+{% load static %}
+{% load socialaccount %}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Finish Setup</title>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body>
+
+    <div class="app-content">
+        <div class="center-stage">
+            <div class="landing-container">
+                <h1>Almost<br>There</h1>
+                <p class="subtitle">Complete your profile</p>
+
+                <p style="font-family: monospace; margin-bottom: 20px;">
+                    You are signing in with <strong>{{ provider.name }}</strong>. 
+                    Please confirm your details below to finish setup.
+                </p>
+
+                <form class="signup" id="signup_form" method="post" action="{% url 'socialaccount_signup' %}">
+                    {% csrf_token %}
+                    {{ form.as_p }}
+                    
+                    {% if redirect_field_value %}
+                    <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}" />
+                    {% endif %}
+                    
+                    <button type="submit" class="btn btn-create" style="margin-top: 20px;">
+                        Create Account
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>

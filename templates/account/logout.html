@@ -1,0 +1,32 @@
+{% load static %}
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Sign Out</title>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body>
+
+    <div class="app-content">
+        <div class="center-stage">
+            <div class="landing-container">
+                <h1>Sign Out</h1>
+                <p class="subtitle">Are you sure you want to leave?</p>
+
+                <form method="post" action="{% url 'account_logout' %}">
+                    {% csrf_token %}
+                    <button type="submit" class="btn btn-create">Confirm Logout</button>
+                </form>
+
+                <div style="margin-top: 20px; text-align: center;">
+                    <a href="/chat/" style="color: #000; font-family: monospace; font-weight: bold; text-transform: uppercase;">
+                        [ Cancel ]
+                    </a>
+                </div>
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>

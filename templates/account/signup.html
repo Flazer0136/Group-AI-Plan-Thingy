@@ -1,0 +1,54 @@
+{% load static %}
+{% load account socialaccount %}
+
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Sign Up</title>
+    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+</head>
+<body>
+
+    <div class="app-content">
+        <div class="center-stage">
+            <div class="landing-container">
+                <h1>New<br>User</h1>
+                <p class="subtitle">Create an account</p>
+
+                <!-- Social Login First (Preferred) -->
+                {% get_providers as social_providers %}
+                {% if social_providers %}
+                    <div class="social-login-list" style="margin-bottom: 30px; border-bottom: 4px solid #000; padding-bottom: 20px;">
+                        {% for provider in social_providers %}
+                            <a href="{% provider_login_url provider.id process='login' %}" class="btn btn-social">
+                                Sign up with {{ provider.name }}
+                            </a>
+                        {% endfor %}
+                    </div>
+                    <p style="text-align: center; font-weight: bold; text-transform: uppercase;">Or use email</p>
+                {% endif %}
+
+                <!-- Standard Form -->
+                <form class="signup" id="signup_form" method="post" action="{% url 'account_signup' %}">
+                    {% csrf_token %}
+                    {{ form.as_p }}
+                    {% if redirect_field_value %}
+                    <input type="hidden" name="{{ redirect_field_name }}" value="{{ redirect_field_value }}" />
+                    {% endif %}
+                    
+                    <button type="submit" class="btn btn-create" style="margin-top: 20px;">Sign Up</button>
+                </form>
+
+                <div style="margin-top: 20px; text-align: center;">
+                    <a href="{% url 'account_login' %}" style="color: #000; font-family: monospace; font-weight: bold; text-transform: uppercase;">
+                        [ Already have an account? ]
+                    </a>
+                </div>
+
+            </div>
+        </div>
+    </div>
+
+</body>
+</html>
