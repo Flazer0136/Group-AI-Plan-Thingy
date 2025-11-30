@@ -21,8 +21,10 @@ def create_room(request):
 @login_required
 def room(request, room_name):
     messages = Message.objects.filter(room=room_name).select_related('author')[:50]
+    recent_rooms = RoomVisit.objects.filter(user=request.user)[:5]
     return render(request, 'chat/room.html', {
         'room_name': room_name,
         'username': request.user.get_username(),
         'messages': messages,
+        'recent_rooms': recent_rooms,
     })
