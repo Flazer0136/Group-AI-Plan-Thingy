@@ -116,14 +116,31 @@ class ChatConsumer(AsyncWebsocketConsumer):
     async def handle_ai_request(self):
         total_cost = await self.get_total_cost()
         if total_cost >= 10.0:
-            await self.send_system_message('⚠️ AI usage limit reached ($10).')
+            await self.send_system_message('💸 AI usage limit reached ($10).')
             return
         
         messages_list = await self.get_room_messages_values()
         
-        # Generate AI response (pass messages_list, not optimized_context!)
-        ai_response = await self.generate_ai_response(messages_list)  # ← CHANGE HERE
-
+        # Check if there's any conversation
+        conversation = await sync_to_async(self.prepare_conversation_context)(messages_list)
+        if not conversation:
+            await self.send_system_message('😎 No messages yet. Start a conversation first!')
+            return
+        
+        # NEW: Check if last message was from AI
+        last_msg = messages_list[-1] if messages_list else None
+        if last_msg and last_msg['author__username'] == 'AI':
+            # Get a short summary of the last AI response (first 100 chars)
+            summary = last_msg['content'][:100] + ('...' if len(last_msg['content']) > 100 else '')
+            await self.send_system_message(
+                f'⏸️ AI just responded: "{summary}"\n'
+                f'Continue the conversation, then ask AI again!'
+            )
+            return
+        
+        # Generate AI response
+        ai_response = await self.generate_ai_response(messages_list)
+        
         await self.save_ai_message(self.room_name, ai_response)
         
         await self.channel_layer.group_send(
@@ -135,6 +152,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
                 'system': False,
             }
         )
+
 
     @sync_to_async
     def get_room_messages_values(self):
