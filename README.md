@@ -22,3 +22,17 @@
 
     ```bash
     uv lock
+
+
+# App Screenshots
+
+## Login Page
+<img width="776" height="306" alt="Screenshot 2025-11-30 221714" src="https://github.com/user-attachments/assets/4826cc26-d6bd-419e-a9f4-7207f72853ed" />
+
+## Home Page
+<img width="796" height="459" alt="Screenshot 2025-11-30 215518" src="https://github.com/user-attachments/assets/922161e2-10c8-4857-bc3e-298496382ca0" />
+
+
+## Main Chat example
+<img width="1920" height="1080" alt="image" src="https://github.com/user-attachments/assets/e17db8ab-2679-4c1c-b8a3-92e20e5d961c" />
+
