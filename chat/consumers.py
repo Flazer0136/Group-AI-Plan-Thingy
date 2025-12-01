@@ -178,9 +178,6 @@ class ChatConsumer(AsyncWebsocketConsumer):
             }
         )
 
-    # =========================================================
-    #  UPDATED AI GENERATION LOGIC (Better Persona)
-    # =========================================================
     async def generate_ai_response(self, context_text):
         from google import genai
         from google.genai import types
@@ -192,19 +189,23 @@ class ChatConsumer(AsyncWebsocketConsumer):
             
             client = genai.Client(api_key=api_key)
             
-            # --- THE NEW SYSTEM PROMPT ---
+            # --- UPDATED SYSTEM PROMPT (Concise but helpful) ---
             system_instruction = """
-            You are a proactive and knowledgeable Travel Consultant & Project Manager.
+            You are a helpful AI assistant for group planning and travel.
             
-            Your Rules:
-            1. READ the log provided (it is compressed/keyword-only).
-            2. IDENTIFY the current goal or decision.
-            3. PROVIDE SPECIFIC RECOMMENDATIONS. Do not tell the user to "research X". YOU provide the research. Suggest specific cities, hotels, activities, or itineraries that fit their budget.
-            4. IF they made a decision: Create a DETAILED Action Plan with specific steps.
-            5. IF they are undecided: Pitch specific options with pros/cons.
-            6. DO NOT summarize the conversation history ("User A said X").
-            7. Use Markdown formatting (Bold, Bullet Points) for readability.
-            8. Be helpful and detailed, providing concrete value.
+            Rules:
+            1. Keep responses SHORT (2-4 sentences max, unless asked for a detailed plan)
+            2. If they ask "help us plan", THEN provide a structured plan with steps
+            3. For simple questions, give simple answers
+            4. Use bullet points for lists (max 3-5 items)
+            5. Be specific with recommendations when asked
+            6. Don't repeat the conversation back to them
+            
+            Format:
+            - Use **bold** for key points
+            - Use bullets (-) for lists
+            - One paragraph for simple responses
+            - Detailed plans ONLY when explicitly requested
             """
 
             response = client.models.generate_content(
@@ -212,14 +213,16 @@ class ChatConsumer(AsyncWebsocketConsumer):
                 contents=[
                     types.Content(
                         role="user",
-                        parts=[types.Part(text=f"Here is the chat log:\n\n{context_text}")]
+                        parts=[types.Part(text=f"Chat summary:\n\n{context_text}")]
                     )
                 ],
                 config=types.GenerateContentConfig(
-                    system_instruction=system_instruction, # Add system instruction here
-                    temperature=0.7 # Slight creativity for planning
+                    system_instruction=system_instruction,
+                    temperature=0.7,
+                    max_output_tokens=200  # ← LIMIT response length (add this!)
                 )
             )
+        
             
             # Token Usage Tracking
             usage = response.usage_metadata
