@@ -1,216 +1,241 @@
 {% load static %}
 <!DOCTYPE html>
 <html>
-
-<head>
+  <head>
     <title>Room: {{ room_name }}</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <link rel="stylesheet" href="{% static 'css/style.css' %}">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <link rel="stylesheet" href="{% static 'css/style.css' %}" />
     <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
-</head>
+  </head>
 
-<body>
-
+  <body>
     <!-- 1. The Sidebar -->
     {% include 'chat/sidebar.html' %}
 
     <!-- 2. The Scrolling Wrapper -->
     <div class="app-content">
+      <!-- 3. Layout (Centered 800px) -->
+      <div class="center-stage">
+        <div class="room-header">
+          <div>
+            <div class="room-code-label">Room Code:</div>
+            <div class="room-code">{{ room_name }}</div>
+          </div>
 
-        <!-- 3. Layout (Centered 800px) -->
-        <div class="center-stage">
-
-            <div class="room-header">
-                <div>
-                    <div class="room-code-label">Room Code:</div>
-                    <div class="room-code">{{ room_name }}</div>
-                </div>
-                
-                <!-- BUTTON GROUP -->
-                <div style="display: flex; gap: 10px;">
-                    <!-- STATS BUTTON -->
-                    <button class="copy-btn" onclick="openStatsModal()" style="display: flex; align-items: center; justify-content: center;">
-                        USAGE CHART
-                    </button>
-                    <!-- COPY BUTTON -->
-                    <button class="copy-btn" onclick="copyRoomCode()">COPY CODE</button>
-                </div>
-            </div>
-
-            <!-- CHAT LOG: Now empty initially, populated by JS -->
-            <div id="chat-log"></div>
-
-            <div class="message-input-area">
-                <input id="chat-message-input" type="text" placeholder="Type a message...">
-                <button id="chat-message-submit">SEND</button>
-                <button id="ai-generate-btn">ASK AI</button>
-            </div>
-
+          <!-- BUTTON GROUP -->
+          <div style="display: flex; gap: 10px">
+            <!-- STATS BUTTON -->
+            <button
+              class="copy-btn"
+              onclick="openStatsModal()"
+              style="
+                display: flex;
+                align-items: center;
+                justify-content: center;
+              "
+            >
+              USAGE CHART
+            </button>
+            <!-- COPY BUTTON -->
+            <button class="copy-btn" onclick="copyRoomCode()">COPY CODE</button>
+          </div>
         </div>
+
+        <!-- CHAT LOG: Now empty initially, populated by JS -->
+        <div id="chat-log"></div>
+
+        <div class="message-input-area">
+          <input
+            id="chat-message-input"
+            type="text"
+            placeholder="Type a message..."
+          />
+          <button id="chat-message-submit">SEND</button>
+          <button id="ai-generate-btn">ASK AI</button>
+        </div>
+      </div>
     </div>
 
     <!-- 4. THE STATS MODAL (Hidden by default) -->
-    <div id="stats-modal" class="modal-overlay" style="display: none;">
-        <div class="modal-content">
-            <div class="modal-header">
-                <span>ROOM_ANALYTICS // {{ room_name }}</span>
-                <button onclick="closeStatsModal()" class="close-modal-btn">[X]</button>
-            </div>
-            
-            <div class="modal-body">
-                <div id="chart-loader" style="text-align: center; padding: 20px; font-family: monospace;">
-                    LOADING_DATA...
-                </div>
-                <img id="stats-chart-img" src="" alt="Room Statistics" style="width: 100%; display: none; border: 2px solid #000;">
-                
-                <div id="stats-summary" style="margin-top: 15px; font-family: monospace; font-weight: bold; text-align: right;">
-                    TOTAL SPENT: <span id="total-spent-display">$0.0000</span>
-                </div>
-            </div>
+    <div id="stats-modal" class="modal-overlay" style="display: none">
+      <div class="modal-content">
+        <div class="modal-header">
+          <span>ROOM_ANALYTICS // {{ room_name }}</span>
+          <button onclick="closeStatsModal()" class="close-modal-btn">
+            [X]
+          </button>
         </div>
+
+        <div class="modal-body">
+          <div
+            id="chart-loader"
+            style="text-align: center; padding: 20px; font-family: monospace"
+          >
+            LOADING_DATA...
+          </div>
+          <img
+            id="stats-chart-img"
+            src=""
+            alt="Room Statistics"
+            style="width: 100%; display: none; border: 2px solid #000"
+          />
+
+          <div
+            id="stats-summary"
+            style="
+              margin-top: 15px;
+              font-family: monospace;
+              font-weight: bold;
+              text-align: right;
+            "
+          >
+            TOTAL SPENT: <span id="total-spent-display">$0.0000</span>
+          </div>
+        </div>
+      </div>
     </div>
 
     <script>
-        const roomName = "{{ room_name }}";
-        const username = "{{ username|default:''|escapejs }}";
-        const chatLog = document.querySelector('#chat-log');
-        const messageInput = document.querySelector('#chat-message-input');
-        const submitButton = document.querySelector('#chat-message-submit');
+              const roomName = "{{ room_name }}";
+              const username = "{{ username|default:''|escapejs }}";
+              const chatLog = document.querySelector('#chat-log');
+              const messageInput = document.querySelector('#chat-message-input');
+              const submitButton = document.querySelector('#chat-message-submit');
 
-        // --- STATS MODAL FUNCTIONS ---
-        function openStatsModal() {
-            const modal = document.getElementById('stats-modal');
-            const loader = document.getElementById('chart-loader');
-            const img = document.getElementById('stats-chart-img');
-            const summary = document.getElementById('total-spent-display');
-            
-            modal.style.display = 'flex';
-            loader.style.display = 'block';
-            img.style.display = 'none';
+              // --- STATS MODAL FUNCTIONS ---
+              function openStatsModal() {
+                  const modal = document.getElementById('stats-modal');
+                  const loader = document.getElementById('chart-loader');
+                  const img = document.getElementById('stats-chart-img');
+                  const summary = document.getElementById('total-spent-display');
 
-            fetch(`/chat/api/stats/${roomName}/`)
-                .then(response => response.json())
-                .then(data => {
-                    loader.style.display = 'none';
-                    if (data.status === 'success') {
-                        img.src = data.chart;
-                        img.style.display = 'block';
-                        summary.innerText = '$' + data.total_spent;
-                    } else {
-                        loader.innerText = "NO_DATA_AVAILABLE";
-                        loader.style.display = 'block';
-                    }
-                })
-                .catch(err => {
-                    loader.innerText = "ERROR_FETCHING_DATA";
-                });
-        }
+                  modal.style.display = 'flex';
+                  loader.style.display = 'block';
+                  img.style.display = 'none';
 
-        function closeStatsModal() {
-            document.getElementById('stats-modal').style.display = 'none';
-        }
+                  fetch(`/chat/api/stats/${roomName}/`)
+                      .then(response => response.json())
+                      .then(data => {
+                          loader.style.display = 'none';
+                          if (data.status === 'success') {
+                              img.src = data.chart;
+                              img.style.display = 'block';
+                              summary.innerText = '$' + data.total_spent;
+                          } else {
+                              loader.innerText = "NO_DATA_AVAILABLE";
+                              loader.style.display = 'block';
+                          }
+                      })
+                      .catch(err => {
+                          loader.innerText = "ERROR_FETCHING_DATA";
+                      });
+              }
 
-        window.onclick = function(event) {
-            const modal = document.getElementById('stats-modal');
-            if (event.target == modal) {
-                closeStatsModal();
-            }
-        }
+              function closeStatsModal() {
+                  document.getElementById('stats-modal').style.display = 'none';
+              }
 
-        // --- CHAT LOGIC ---
+              window.onclick = function(event) {
+                  const modal = document.getElementById('stats-modal');
+                  if (event.target == modal) {
+                      closeStatsModal();
+                  }
+              }
 
-        function copyRoomCode() {
-            navigator.clipboard.writeText(roomName);
-            alert('COPIED: ' + roomName);
-        }
+              // --- CHAT LOGIC ---
 
-        const chatSocket = new WebSocket(
-            'ws://' + window.location.host + '/ws/chat/' + roomName + '/'
-        );
+              function copyRoomCode() {
+                  navigator.clipboard.writeText(roomName);
+                  alert('COPIED: ' + roomName);
+              }
 
-        chatSocket.onmessage = function (e) {
-            const data = JSON.parse(e.data);
-            addMessage(data.message, data.username || 'System', data.system || false);
-        };
+              const chatSocket = new WebSocket(
+          (window.location.protocol === 'https:' ? 'wss://' : 'ws://') + window.location.host + '/ws/chat/' + roomName + '/'
+      );
 
-        chatSocket.onclose = function (e) {
-            console.log('Disconnected from room');
-            // Optional: Reconnect logic or redirect
-        };
 
-        submitButton.onclick = function (e) {
-            const message = messageInput.value.trim();
-            if (message) {
-                chatSocket.send(JSON.stringify({
-                    'message': message,
-                    'username': username
-                }));
-                messageInput.value = '';
-            }
-        };
+              chatSocket.onmessage = function (e) {
+                  const data = JSON.parse(e.data);
+                  addMessage(data.message, data.username || 'System', data.system || false);
+              };
 
-        messageInput.onkeyup = function (e) {
-            if (e.key === 'Enter') submitButton.click();
-        };
+              chatSocket.onclose = function (e) {
+                  console.log('Disconnected from room');
+                  // Optional: Reconnect logic or redirect
+              };
 
-        document.querySelector('#ai-generate-btn').onclick = function (e) {
-            chatSocket.send(JSON.stringify({
-                'type': 'ai_request',
-                'username': username
-            }));
-        };
+              submitButton.onclick = function (e) {
+                  const message = messageInput.value.trim();
+                  if (message) {
+                      chatSocket.send(JSON.stringify({
+                          'message': message,
+                          'username': username
+                      }));
+                      messageInput.value = '';
+                  }
+              };
 
-        function getUsernameColor(str) {
-            if (!str) return '#000000';
-            let hash = 0;
-            for (let i = 0; i < str.length; i++) {
-                hash = str.charCodeAt(i) + ((hash << 5) - hash);
-            }
-            const c = (hash & 0x00FFFFFF).toString(16).toUpperCase();
-            return '#' + '00000'.substring(0, 6 - c.length) + c;
-        }
+              messageInput.onkeyup = function (e) {
+                  if (e.key === 'Enter') submitButton.click();
+              };
 
-        function addMessage(message, sender, isSystem) {
-            const isAI = (sender === 'AI');
-            const messageElement = document.createElement('div');
+              document.querySelector('#ai-generate-btn').onclick = function (e) {
+                  chatSocket.send(JSON.stringify({
+                      'type': 'ai_request',
+                      'username': username
+                  }));
+              };
 
-            if (isSystem) {
-                messageElement.classList.add('message', 'system');
-                messageElement.textContent = message;
-            } 
-            else if (isAI) {
-                // Apply the Document Style
-                messageElement.classList.add('ai-document');
-                messageElement.innerHTML = marked.parse(message);
-            } 
-            else {
-                messageElement.classList.add('message');
-                // Color Logic
-                const userColor = getUsernameColor(sender);
-                messageElement.style.borderColor = userColor;
+              function getUsernameColor(str) {
+                  if (!str) return '#000000';
+                  let hash = 0;
+                  for (let i = 0; i < str.length; i++) {
+                      hash = str.charCodeAt(i) + ((hash << 5) - hash);
+                  }
+                  const c = (hash & 0x00FFFFFF).toString(16).toUpperCase();
+                  return '#' + '00000'.substring(0, 6 - c.length) + c;
+              }
 
-                const userStrong = document.createElement('strong');
-                userStrong.style.display = 'block';
-                userStrong.style.marginBottom = '5px';
-                userStrong.style.textTransform = 'uppercase';
-                userStrong.style.color = userColor;
-                userStrong.textContent = sender + ':';
-                
-                messageElement.appendChild(userStrong);
-                messageElement.appendChild(document.createTextNode(message));
-            }
+              function addMessage(message, sender, isSystem) {
+                  const isAI = (sender === 'AI');
+                  const messageElement = document.createElement('div');
 
-            chatLog.appendChild(messageElement);
-            chatLog.scrollTop = chatLog.scrollHeight;
-        }
+                  if (isSystem) {
+                      messageElement.classList.add('message', 'system');
+                      messageElement.textContent = message;
+                  }
+                  else if (isAI) {
+                      // Apply the Document Style
+                      messageElement.classList.add('ai-document');
+                      messageElement.innerHTML = marked.parse(message);
+                  }
+                  else {
+                      messageElement.classList.add('message');
+                      // Color Logic
+                      const userColor = getUsernameColor(sender);
+                      messageElement.style.borderColor = userColor;
 
-        // --- INITIAL HISTORY LOAD (THE FIX) ---
-        // This loops through the database messages and renders them 
-        // using the JS function, ensuring AI messages get formatted correctly.
-        {% for m in messages %}
-            addMessage("{{ m.content|escapejs }}", "{{ m.author.username|escapejs }}", false);
-        {% endfor %}
+                      const userStrong = document.createElement('strong');
+                      userStrong.style.display = 'block';
+                      userStrong.style.marginBottom = '5px';
+                      userStrong.style.textTransform = 'uppercase';
+                      userStrong.style.color = userColor;
+                      userStrong.textContent = sender + ':';
 
+                      messageElement.appendChild(userStrong);
+                      messageElement.appendChild(document.createTextNode(message));
+                  }
+
+                  chatLog.appendChild(messageElement);
+                  chatLog.scrollTop = chatLog.scrollHeight;
+              }
+
+              // --- INITIAL HISTORY LOAD (THE FIX) ---
+              // This loops through the database messages and renders them
+              // using the JS function, ensuring AI messages get formatted correctly.
+              {% for m in messages %}
+                  addMessage("{{ m.content|escapejs }}", "{{ m.author.username|escapejs }}", false);
+              {% endfor %}
     </script>
-</body>
+  </body>
 </html>
