@@ -4,7 +4,6 @@ from channels.generic.websocket import AsyncWebsocketConsumer
 from asgiref.sync import sync_to_async
 from decimal import Decimal
 from django.utils import timezone
-from .utils import analyze_and_format_chat
 
 class ChatConsumer(AsyncWebsocketConsumer):
     @sync_to_async
@@ -121,15 +120,9 @@ class ChatConsumer(AsyncWebsocketConsumer):
             return
         
         messages_list = await self.get_room_messages_values()
-        optimized_context = await sync_to_async(analyze_and_format_chat)(messages_list)
-
-        print("\n" + "="*40)
-        print("🔍 PANDAS SUMMARY GENERATED (SENDING TO AI):")
-        print("="*40)
-        print(optimized_context)
-        print("="*40 + "\n")
         
-        ai_response = await self.generate_ai_response(optimized_context)
+        # Generate AI response (pass messages_list, not optimized_context!)
+        ai_response = await self.generate_ai_response(messages_list)  # ← CHANGE HERE
 
         await self.save_ai_message(self.room_name, ai_response)
         
@@ -178,7 +171,7 @@ class ChatConsumer(AsyncWebsocketConsumer):
             }
         )
 
-    async def generate_ai_response(self, context_text):
+    async def generate_ai_response(self, messages_data):
         from google import genai
         from google.genai import types
         
@@ -189,37 +182,40 @@ class ChatConsumer(AsyncWebsocketConsumer):
             
             client = genai.Client(api_key=api_key)
             
-            # --- UPDATED SYSTEM PROMPT (Concise but helpful) ---
+            # Prepare conversation with role-based context
+            conversation = await sync_to_async(self.prepare_conversation_context)(messages_data)
+            
+            # Build messages for Gemini
+            gemini_messages = []
+            
+            # System instruction (concise planning assistant)
             system_instruction = """
             You are a helpful AI assistant for group planning and travel.
             
             Rules:
-            1. Keep responses SHORT (2-4 sentences max, unless asked for a detailed plan)
-            2. If they ask "help us plan", THEN provide a structured plan with steps
-            3. For simple questions, give simple answers
-            4. Use bullet points for lists (max 3-5 items)
-            5. Be specific with recommendations when asked
-            6. Don't repeat the conversation back to them
-            
-            Format:
-            - Use **bold** for key points
-            - Use bullets (-) for lists
-            - One paragraph for simple responses
-            - Detailed plans ONLY when explicitly requested
+            - Keep responses SHORT (2-4 sentences) unless asked for detailed plan
+            - When asked "help plan X", provide structured steps
+            - Use **bold** and bullet points for readability
+            - Be specific with recommendations when requested
+            - Don't summarize conversation history back to users
             """
-
+            
+            # Add conversation history with proper roles
+            for msg in conversation:
+                gemini_messages.append(
+                    types.Content(
+                        role=msg['role'],
+                        parts=[types.Part(text=msg['content'])]
+                    )
+                )
+            
             response = client.models.generate_content(
                 model="gemini-2.0-flash-lite",
-                contents=[
-                    types.Content(
-                        role="user",
-                        parts=[types.Part(text=f"Chat summary:\n\n{context_text}")]
-                    )
-                ],
+                contents=gemini_messages,
                 config=types.GenerateContentConfig(
                     system_instruction=system_instruction,
                     temperature=0.7,
-                    max_output_tokens=200  # ← LIMIT response length (add this!)
+                    max_output_tokens=200  # Keep responses concise
                 )
             )
         
@@ -245,6 +241,30 @@ class ChatConsumer(AsyncWebsocketConsumer):
             return response.text
         except Exception as e:
             return f"Error: {str(e)}"
+        
+
+    def prepare_conversation_context(self, messages_data, max_messages=30):
+        """Helper to prepare context"""
+        if not messages_data:
+            return []
+        
+        sorted_messages = sorted(messages_data, key=lambda x: x['timestamp'])
+        recent_messages = sorted_messages[-max_messages:]
+        
+        conversation = []
+        for msg in recent_messages:
+            username = msg['author__username']
+            content = msg['content']
+            
+            if username == 'System':
+                continue
+            
+            if username == 'AI':
+                conversation.append({'role': 'model', 'content': content})
+            else:
+                conversation.append({'role': 'user', 'content': f"{username}: {content}"})
+        
+        return conversation
 
     async def chat_message(self, event):
         try:
