@@ -1,5 +1,5 @@
 import matplotlib
-matplotlib.use('Agg') # Required for Django to run Matplotlib in background
+matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 import pandas as pd
 import io
