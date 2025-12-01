@@ -1,6 +1,7 @@
 import matplotlib
 matplotlib.use('Agg') # Required for Django to run Matplotlib in background
 import matplotlib.pyplot as plt
+import pandas as pd
 import io
 import base64
 import random
@@ -44,34 +45,41 @@ def delete_room(request, room_name):
 
 @login_required
 def get_room_stats(request, room_name):
-    # 1. Fetch Data
-    usage_data = AITokenUsage.objects.filter(room=room_name).order_by('timestamp')
+    # 1. Fetch Data (Optimized)
+    # Use .values() to get a list of dicts directly, which is faster for Pandas to load
+    usage_queryset = AITokenUsage.objects.filter(room=room_name).values('timestamp', 'cost_usd')
     
-    if not usage_data.exists():
+    # 2. Insert Pandas: Data Transformation
+    df = pd.DataFrame(list(usage_queryset))
+
+    if df.empty:
         return JsonResponse({'status': 'no_data'})
 
-    # 2. Prepare Data for Plotting
-    # We'll plot Cumulative Cost over time
-    timestamps = [u.timestamp for u in usage_data]
-    costs = [float(u.cost_usd) for u in usage_data]
+    # Best Practice: Ensure types are correct for math/plotting
+    df['timestamp'] = pd.to_datetime(df['timestamp'])
+    df['cost_usd'] = pd.to_numeric(df['cost_usd'])
     
-    # Calculate cumulative sum for a "Burn Rate" chart
-    cumulative_cost = []
-    current_sum = 0
-    for c in costs:
-        current_sum += c
-        cumulative_cost.append(current_sum)
+    # Sort by time (crucial for cumulative sums)
+    df = df.sort_values('timestamp')
+    
+    # The Magic Line: Replace your manual loop with vectorization
+    df['cumulative_cost'] = df['cost_usd'].cumsum()
 
     # 3. Create Brutalist Plot
     plt.figure(figsize=(7, 4), facecolor='white')
     ax = plt.gca()
     ax.set_facecolor('white')
     
-    # Plot Line
-    plt.plot(timestamps, cumulative_cost, color='black', linewidth=2.5, drawstyle='steps-post')
-    plt.fill_between(timestamps, cumulative_cost, color='black', alpha=0.1)
+    # Plot Line using Pandas Series
+    # We pass the Pandas columns directly to Matplotlib
+    ax.plot(df['timestamp'], df['cumulative_cost'], 
+            color='black', 
+            linewidth=2.5, 
+            drawstyle='steps-post')
+            
+    ax.fill_between(df['timestamp'], df['cumulative_cost'], color='black', alpha=0.1)
     
-    # Styling (Monospace fonts, thick spines)
+    # Styling (Monospace fonts, thick spines) - Kept your exact styling
     plt.title(f"TOKEN BURN RATE: {room_name}", fontsize=10, fontweight='bold', fontname='monospace', pad=15)
     plt.ylabel("TOTAL COST ($)", fontsize=8, fontname='monospace')
     plt.grid(True, linestyle=':', linewidth=1, color='black', alpha=0.2)
@@ -95,8 +103,11 @@ def get_room_stats(request, room_name):
     
     graphic = base64.b64encode(image_png).decode('utf-8')
     
+    # Get the last value of the cumulative sum for the total
+    total_spent = df['cumulative_cost'].iloc[-1]
+    
     return JsonResponse({
         'status': 'success',
         'chart': f"data:image/png;base64,{graphic}",
-        'total_spent': round(current_sum, 4)
+        'total_spent': round(float(total_spent), 4)
     })

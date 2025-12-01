@@ -1,6 +1,4 @@
-/* =========================================
-   1. LAYOUT SKELETON (The "Frame")
-   ========================================= */
+
 * { box-sizing: border-box; }
 
 body {
@@ -69,9 +67,6 @@ body {
     align-items: center; /* This forces the child (.center-stage) to the middle */
 }
 
-/* =========================================
-   2. YOUR ORIGINAL STYLES (Preserved)
-   ========================================= */
 
 /* The Wrapper for your centered content */
 .center-stage {
@@ -209,10 +204,10 @@ input:focus { background-color: #f4f4f4; }
 }
 
 a.btn {
-    display: block;          /* behave like a block element */
-    text-decoration: none;   /* remove blue underline */
-    text-align: center;      /* center the text */
-    line-height: 1.2;        /* ensure vertical alignment */
+    display: block;          
+    text-decoration: none;   
+    text-align: center;     
+    line-height: 1.2;        
 }
 
 /* Specific Social Button Style */
