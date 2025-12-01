@@ -9,6 +9,10 @@
 .room-item-wrapper:hover .delete-room-btn {
     opacity: 1;
 }
+.logout-btn:hover {
+    background-color: #000000 !important;
+    color: #ffffff !important;
+}
 </style>
 
 <div class="sidebar">
@@ -48,4 +52,11 @@
             </a>
         {% endif %}
     </div>
+
+    <form method="POST" action="{% url 'account_logout' %}">
+        {% csrf_token %}
+        <button type="submit" class="room-item logout-btn" style="width: 100%; text-align: left; cursor: pointer; background-color: #ffffff; border: 2px solid #000000;">
+            <- Logout
+        </button>
+    </form>
 </div>
