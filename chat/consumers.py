@@ -116,7 +116,9 @@ class ChatConsumer(AsyncWebsocketConsumer):
     async def handle_ai_request(self):
         total_cost = await self.get_total_cost()
         if total_cost >= 10.0:
-            await self.send_system_message('💸 AI usage limit reached ($10).')
+            await self.send_system_message(
+                "AI usage limit reached ($10). Please try again later."
+            )
             return
         
         messages_list = await self.get_room_messages_values()
@@ -124,45 +126,54 @@ class ChatConsumer(AsyncWebsocketConsumer):
         # Check if there's any conversation
         conversation = await sync_to_async(self.prepare_conversation_context)(messages_list)
         if not conversation:
-            await self.send_system_message('😎 No messages yet. Start a conversation first!')
+            await self.send_system_message(
+                "There are no messages yet in this room. Start the conversation, then ask AI."
+            )
             return
         
-        # NEW: Check if last message was from AI and same user is asking again
+        # Check if last message was from AI and same user is asking again
         last_msg = messages_list[-1] if messages_list else None
         current_user = self.scope.get('user')
         requesting_username = (
             current_user.username if current_user and current_user.is_authenticated
-            else 'Anonymous'
+            else "Anonymous"
         )
 
-        if last_msg and last_msg['author__username'] == 'AI':
+        if last_msg and last_msg["author__username"] == "AI":
             # Find the last human message before the AI reply
             last_human_msg = None
             for msg in reversed(messages_list):
-                if msg['author__username'] not in ['AI', 'System']:
+                if msg["author__username"] not in ["AI", "System"]:
                     last_human_msg = msg
                     break
 
             # If the same user who prompted AI is asking again immediately
-            if last_human_msg and last_human_msg['author__username'] == requesting_username:
+            if last_human_msg and last_human_msg["author__username"] == requesting_username:
                 await self.send_system_message(
-                    f'💡 AI just responded to you, {requesting_username}. '
-                    f'Read the answer, add more details, or let others reply before asking again.'
+                    f"AI just responded to you, {requesting_username}. "
+                    "Read the answer, add more details, or let others reply before asking again."
                 )
                 return
 
         # Generate AI response
         ai_response = await self.generate_ai_response(messages_list)
-        
+
+        # If generate_ai_response returns a generic error string, send it as system message
+        if ai_response.startswith("Error:") or ai_response.startswith("Sorry"):
+            await self.send_system_message(
+                "There was a problem generating an AI response. Please try again."
+            )
+            return
+
         await self.save_ai_message(self.room_name, ai_response)
-        
+
         await self.channel_layer.group_send(
             self.room_group_name,
             {
-                'type': 'chat_message',
-                'message': ai_response,
-                'username': 'AI',
-                'system': False,
+                "type": "chat_message",
+                "message": ai_response,
+                "username": "AI",
+                "system": False,
             }
         )
 
