@@ -47,7 +47,12 @@ body {
     transition: background 0.1s, color 0.1s;
 }
 .room-item:hover { background-color: #000000; color: #ffffff; }
-.room-item.active { background-color: #f0f0f0; border-left: 8px solid #000000; }
+.room-item.active { background-color: #f0f0f0; border-left: 8px solid #000000; color: #000000;}
+.room-item.active:hover {
+    background-color: #000000;
+    color: #ffffff;
+    border-left: 8px solid #ffffff; /* Optional: Turn the indicator white so it's visible */
+}
 @media (max-width: 768px) { .sidebar { display: none; } }
 
 
@@ -282,4 +287,90 @@ a.btn {
     margin-right: 10px;
     width: auto;
     transform: scale(1.2);
+}
+
+.ai-document {
+    background-color: #ffffff;
+    border: 4px solid #000000;
+    padding: 40px; /* More "paper-like" padding */
+    margin-bottom: 25px;
+    margin-top: 10px;
+    width: 100%;
+    position: relative;
+    
+    /* "Drop Shadow" effect to make it pop like a card */
+    box-shadow: 12px 12px 0px #000000; 
+    
+    /* Reset font to be readable, not monospace */
+    font-family: 'Helvetica Neue', Helvetica, Arial, sans-serif;
+    color: #000;
+    line-height: 1.6;
+}
+
+/* Header Label */
+.ai-document::before {
+    content: "AI PROJECT PLAN"; /* Or "ANALYSIS" */
+    position: absolute;
+    top: -15px;
+    left: 20px;
+    background: #000;
+    color: #fff;
+    padding: 5px 15px;
+    font-weight: 900;
+    font-size: 12px;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+}
+
+/* Markdown Element Styling within the Document */
+.ai-document h1, 
+.ai-document h2, 
+.ai-document h3 {
+    margin-top: 25px;
+    margin-bottom: 15px;
+    font-weight: 900;
+    text-transform: uppercase;
+    border-bottom: 2px solid #000;
+    padding-bottom: 5px;
+}
+
+.ai-document h1 { font-size: 1.8rem; }
+.ai-document h2 { font-size: 1.4rem; }
+.ai-document h3 { font-size: 1.1rem; border-bottom: none; }
+
+.ai-document p {
+    margin-bottom: 15px;
+    font-size: 16px;
+}
+
+.ai-document ul, 
+.ai-document ol {
+    margin-bottom: 15px;
+    padding-left: 25px;
+}
+
+.ai-document li {
+    margin-bottom: 8px;
+}
+
+.ai-document strong {
+    font-weight: 900;
+}
+
+.ai-document blockquote {
+    border-left: 6px solid #000;
+    margin: 20px 0;
+    padding-left: 20px;
+    font-style: italic;
+    background: #f4f4f4;
+    padding: 15px;
+}
+
+/* Code blocks inside AI response */
+.ai-document pre {
+    background: #f4f4f4;
+    padding: 15px;
+    border: 2px solid #000;
+    overflow-x: auto;
+    font-family: monospace;
 }

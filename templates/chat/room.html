@@ -98,21 +98,40 @@
 
 
         function addMessage(message, sender, isSystem) {
+            // 1. Check if it is an AI message
+            const isAI = (sender === 'AI');
+
+            // 2. Create the container div
             const messageElement = document.createElement('div');
-            messageElement.classList.add('message');
 
             if (isSystem) {
-                messageElement.classList.add('system');
+                // --- SYSTEM MESSAGE ---
+                messageElement.classList.add('message', 'system');
                 messageElement.textContent = message;
-            } else {
-                // AI message and render markdown
-                if (sender === 'AI') {
-                    messageElement.innerHTML = `${sender}: ${marked.parseInline(message)}`;
-                } else {
-                    messageElement.textContent = sender + ': ' + message;
-                }
+            } 
+            else if (isAI) {
+                // --- AI DOCUMENT STYLE ---
+                // We do NOT add the 'message' class, we use 'ai-document'
+                messageElement.classList.add('ai-document');
+                // Render Markdown content directly inside
+                messageElement.innerHTML = marked.parse(message);
+            } 
+            else {
+                // --- STANDARD USER CHAT BUBBLE ---
+                messageElement.classList.add('message');
+                // Create bold username label
+                const userStrong = document.createElement('strong');
+                userStrong.style.display = 'block';
+                userStrong.style.marginBottom = '5px';
+                userStrong.style.textTransform = 'uppercase';
+                userStrong.textContent = sender + ':';
+                
+                // Append username and text
+                messageElement.appendChild(userStrong);
+                messageElement.appendChild(document.createTextNode(message));
             }
 
+            // 3. Append to log and scroll
             chatLog.appendChild(messageElement);
             chatLog.scrollTop = chatLog.scrollHeight;
         }
