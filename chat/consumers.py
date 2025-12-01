@@ -127,17 +127,30 @@ class ChatConsumer(AsyncWebsocketConsumer):
             await self.send_system_message('😎 No messages yet. Start a conversation first!')
             return
         
-        # NEW: Check if last message was from AI
+        # NEW: Check if last message was from AI and same user is asking again
         last_msg = messages_list[-1] if messages_list else None
+        current_user = self.scope.get('user')
+        requesting_username = (
+            current_user.username if current_user and current_user.is_authenticated
+            else 'Anonymous'
+        )
+
         if last_msg and last_msg['author__username'] == 'AI':
-            # Get a short summary of the last AI response (first 100 chars)
-            summary = last_msg['content'][:100] + ('...' if len(last_msg['content']) > 100 else '')
-            await self.send_system_message(
-                f'⏸️ AI just responded: "{summary}"\n'
-                f'Continue the conversation, then ask AI again!'
-            )
-            return
-        
+            # Find the last human message before the AI reply
+            last_human_msg = None
+            for msg in reversed(messages_list):
+                if msg['author__username'] not in ['AI', 'System']:
+                    last_human_msg = msg
+                    break
+
+            # If the same user who prompted AI is asking again immediately
+            if last_human_msg and last_human_msg['author__username'] == requesting_username:
+                await self.send_system_message(
+                    f'💡 AI just responded to you, {requesting_username}. '
+                    f'Read the answer, add more details, or let others reply before asking again.'
+                )
+                return
+
         # Generate AI response
         ai_response = await self.generate_ai_response(messages_list)
         
